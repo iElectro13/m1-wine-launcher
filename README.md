@@ -1,36 +1,21 @@
 # m1-wine-launcher
 
-Run Windows games (Steam) on Apple Silicon Macs through Wine + Rosetta 2, with per-bottle configuration.
+Bottle manager for running Windows games (Steam) on Apple Silicon Macs through Wine + Rosetta 2, with per-bottle configuration.
 
-## Status
+## Approach
 
-Stage 1: build Wine from the LGPL CrossOver sources published by CodeWeavers, in CI.
-
-## Pipeline
-
-`.github/workflows/build-wine.yml` (manual dispatch) builds x86_64 Wine on `macos-15-intel` and uploads
-`wine-crossover-<version>-x86_64-macos.tar.xz` as an artifact. Run it from the Actions tab or:
-
-```sh
-gh workflow run build-wine.yml -f crossover_version=26.3.0
-```
-
-## Test on an M1 Mac
-
-```sh
-softwareupdate --install-rosetta --agree-to-license
-mkdir wine && tar -xf wine-crossover-*.tar.xz -C wine
-xattr -dr com.apple.quarantine wine
-WINEPREFIX=$HOME/bottle1 wine/bin/wine winecfg
-```
+- Wine is not built here. Prebuilt x86_64 Wine from [Gcenx/macOS_Wine_builds](https://github.com/Gcenx/macOS_Wine_builds) runs under Rosetta 2.
+- A Swift core package manages bottles (Wine prefixes): Windows version, graphics backend, environment variables, DLL overrides.
+- A SwiftUI app sits on top of the core.
+- Declarative YAML recipes install software into a bottle (Steam first).
 
 ## Roadmap
 
-1. Wine build (this stage)
+1. Core: `Bottle`, `WineRunner`, `BottleStore`, `RuntimeInstaller`
 2. Graphics backends: DXVK + MoltenVK, DXMT (D3DMetal is Apple-licensed and is not redistributed here)
-3. SwiftUI bottle manager: prefixes, Windows version, DLL overrides, env vars, winetricks, backend selection
-4. Steam bootstrap per bottle
+3. Recipes engine and Steam recipe
+4. SwiftUI app
 
 ## Licensing
 
-Wine and the bundled projects are LGPL/GPL. CodeWeavers' proprietary CrossOver components are not used or reverse engineered.
+Wine and the bundled projects are LGPL/GPL. No proprietary CrossOver code or assets are used.
