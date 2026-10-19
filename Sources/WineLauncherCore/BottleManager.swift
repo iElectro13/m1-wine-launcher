@@ -92,6 +92,16 @@ public struct BottleManager: Sendable {
         return updated
     }
 
+    /// The log files written by `launch`, newest first (their names start with a timestamp).
+    public func logFiles(for bottle: Bottle) -> [URL] {
+        let directory = store.directory(for: bottle.id).appendingPathComponent("logs", isDirectory: true)
+        let entries =
+            (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil))
+            ?? []
+        return entries.filter { $0.pathExtension == "log" }
+            .sorted { $0.lastPathComponent > $1.lastPathComponent }
+    }
+
     public func delete(_ bottle: Bottle) throws {
         try store.delete(id: bottle.id)
     }

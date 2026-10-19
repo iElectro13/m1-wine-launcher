@@ -119,4 +119,25 @@ struct BottleManagerTests {
 
         #expect(try h.store.list().isEmpty)
     }
+
+    @Test func logFilesListsTheBottlesLogsNewestFirst() async throws {
+        let h = try makeHarness()
+        let bottle = try await h.manager.createBottle(name: "Games")
+        let logs = h.store.directory(for: bottle.id).appendingPathComponent("logs", isDirectory: true)
+        try FileManager.default.createDirectory(at: logs, withIntermediateDirectories: true)
+        for name in ["20240101-000000-000.log", "20240301-000000-000.log", "20240201-000000-000.log"] {
+            try "x".write(to: logs.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        }
+
+        #expect(h.manager.logFiles(for: bottle).map(\.lastPathComponent) == [
+            "20240301-000000-000.log", "20240201-000000-000.log", "20240101-000000-000.log",
+        ])
+    }
+
+    @Test func logFilesIsEmptyBeforeAnythingRan() async throws {
+        let h = try makeHarness()
+        let bottle = try await h.manager.createBottle(name: "Games")
+
+        #expect(h.manager.logFiles(for: bottle).isEmpty)
+    }
 }
