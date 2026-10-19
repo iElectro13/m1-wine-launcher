@@ -12,4 +12,6 @@ public protocol BottleStore: Sendable {
     func load(id: UUID) throws -> Bottle
     func save(_ bottle: Bottle) throws
     func delete(id: UUID) throws
+    func directory(for id: UUID) -> URL
+    func prefixURL(for id: UUID) -> URL
 }

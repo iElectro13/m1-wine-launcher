@@ -35,6 +35,18 @@ public struct WineCommandBuilder: Sendable {
         command(["winecfg", "-v", bottle.windowsVersion.rawValue], bottle: bottle, prefix: prefix)
     }
 
+    /// Restores missing or replaced built-in DLLs in the prefix.
+    public func updatePrefix(for bottle: Bottle, prefix: URL) -> WineCommand {
+        command(["wineboot", "-u"], bottle: bottle, prefix: prefix)
+    }
+
+    /// Terminates every program running in the prefix.
+    public func stopAll(prefix: URL) -> WineCommand {
+        WineCommand(
+            executable: runtime.wineserverExecutable, arguments: ["-k"],
+            environment: ["WINEPREFIX": prefix.path])
+    }
+
     private func command(_ arguments: [String], bottle: Bottle, prefix: URL) -> WineCommand {
         var environment = ["WINEDEBUG": "-all"]
         environment.merge(bottle.environment) { _, bottleValue in bottleValue }
