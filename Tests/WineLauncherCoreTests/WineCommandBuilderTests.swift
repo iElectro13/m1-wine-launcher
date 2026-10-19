@@ -77,17 +77,17 @@ struct WineCommandBuilderTests {
 
         #expect(
             command.environment["WINEDLLOVERRIDES"]
-                == "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=n,b")
+                == "d3d10core=n,b;d3d11=n,b")
     }
 
     @Test func explicitBottleOverrideWinsOverBackendOverride() {
-        let bottle = Bottle(name: "Games", graphicsBackend: .dxvk, dllOverrides: ["dxgi": .builtin])
+        let bottle = Bottle(name: "Games", graphicsBackend: .dxvk, dllOverrides: ["d3d11": .builtin])
 
         let command = makeBuilder().launch(program: "a.exe", in: bottle, prefix: prefix)
 
         #expect(
             command.environment["WINEDLLOVERRIDES"]
-                == "d3d10core=n,b;d3d11=n,b;d3d9=n,b;dxgi=b")
+                == "d3d10core=n,b;d3d11=b")
     }
 
     @Test func initializePrefixRunsWineboot() {

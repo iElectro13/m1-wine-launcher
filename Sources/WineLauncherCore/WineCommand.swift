@@ -61,8 +61,7 @@ extension GraphicsBackend {
     fileprivate var dllOverrides: [String: DLLOverride] {
         switch self {
         case .dxvk:
-            ["d3d9": .nativeThenBuiltin, "d3d10core": .nativeThenBuiltin,
-             "d3d11": .nativeThenBuiltin, "dxgi": .nativeThenBuiltin]
+            ["d3d10core": .nativeThenBuiltin, "d3d11": .nativeThenBuiltin]
         case .wineDefault, .dxmt, .d3dMetal:
             [:]
         }
