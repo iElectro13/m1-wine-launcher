@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Test
+        run: swift test
+
+      - name: Build app bundle
+        run: scripts/make-app.sh build
+
+      - name: Package
+        run: ditto -c -k --keepParent build/WineLauncher.app WineLauncher.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WineLauncher-macOS-arm64
+          path: WineLauncher.zip
+          if-no-files-found: error
