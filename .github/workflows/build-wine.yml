@@ -1,0 +1,77 @@
+name: build-wine
+
+on:
+  workflow_dispatch:
+    inputs:
+      crossover_version:
+        description: CrossOver source release to build (LGPL sources published by CodeWeavers)
+        default: "26.3.0"
+        required: true
+
+env:
+  CX_VERSION: ${{ inputs.crossover_version || '26.3.0' }}
+
+jobs:
+  wine:
+    # x86_64 runner: Wine is built as x86_64 and runs on Apple Silicon through Rosetta 2.
+    runs-on: macos-15-intel
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache source tarball
+        id: src-cache
+        uses: actions/cache@v4
+        with:
+          path: crossover-sources.tar.gz
+          key: crossover-sources-${{ env.CX_VERSION }}
+
+      - name: Download CrossOver sources
+        if: steps.src-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fL --retry 3 -o crossover-sources.tar.gz \
+            "https://media.codeweavers.com/pub/crossover/source/crossover-sources-${CX_VERSION}.tar.gz"
+
+      - name: Extract sources
+        run: tar -xzf crossover-sources.tar.gz
+
+      - name: Install build dependencies
+        run: |
+          brew update
+          brew install bison mingw-w64 pkgconf gettext freetype gnutls sdl2
+
+      - name: Configure
+        run: |
+          set -euo pipefail
+          export PATH="$(brew --prefix bison)/bin:$PATH"
+          mkdir -p build
+          cd build
+          ../sources/wine/configure \
+            --prefix="$GITHUB_WORKSPACE/out" \
+            --disable-option-checking \
+            --enable-archs=i386,x86_64 \
+            --disable-tests \
+            --without-alsa --without-capi --without-dbus --without-inotify \
+            --without-oss --without-pcap --without-pcsclite --without-pulse \
+            --without-sane --without-udev --without-unwind --without-usb \
+            --without-v4l2 --without-x
+        env:
+          CFLAGS: -O2 -Wno-implicit-function-declaration -Wno-format -Wno-deprecated-declarations -Wno-incompatible-pointer-types
+          CROSSCFLAGS: -O2
+          LDFLAGS: -Wl,-headerpad_max_install_names
+
+      - name: Build
+        run: |
+          export PATH="$(brew --prefix bison)/bin:$PATH"
+          make -C build -j"$(sysctl -n hw.ncpu)"
+
+      - name: Install and package
+        run: |
+          make -C build install
+          tar -C out -cJf "wine-crossover-${CX_VERSION}-x86_64-macos.tar.xz" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wine-${{ env.CX_VERSION }}-x86_64-macos
+          path: wine-crossover-*.tar.xz
+          if-no-files-found: error

@@ -1,0 +1,6 @@
+.atl/
+build/
+out/
+sources/
+*.tar.gz
+*.tar.xz
