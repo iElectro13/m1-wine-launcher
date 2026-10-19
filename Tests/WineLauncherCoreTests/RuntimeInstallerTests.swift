@@ -32,7 +32,10 @@ struct RuntimeInstallerTests {
         let runtime = try await installer.install(source)
 
         #expect(runtime.wineExecutable.path.hasSuffix(wineRelativePath))
-        #expect(runtime.wineExecutable.path.hasPrefix(paths.runtimes.path))
+        // macOS resolves /var to /private/var while enumerating.
+        #expect(
+            runtime.wineExecutable.resolvingSymlinksInPath().path
+                .hasPrefix(paths.runtimes.resolvingSymlinksInPath().path))
         #expect(FileManager.default.fileExists(atPath: runtime.wineExecutable.path))
     }
 
