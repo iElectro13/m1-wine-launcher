@@ -1,6 +1,6 @@
 .atl/
-build/
-out/
-sources/
-*.tar.gz
-*.tar.xz
+.build/
+.swiftpm/
+Package.resolved
+xcuserdata/
+DerivedData/
