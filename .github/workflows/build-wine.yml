@@ -36,9 +36,13 @@ jobs:
         run: tar -xzf crossover-sources.tar.gz
 
       - name: Install build dependencies
+        timeout-minutes: 15
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
         run: |
-          brew update
-          brew install bison mingw-w64 pkgconf gettext freetype gnutls sdl2
+          # --force-bottle fails fast instead of compiling toolchains from source
+          brew install --force-bottle --verbose bison mingw-w64 pkgconf gettext freetype gnutls sdl2
 
       - name: Configure
         run: |
